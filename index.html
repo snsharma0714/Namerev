@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revel - Curtain Opening</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .curtain-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            background: #0a192f; /* Dark blue tech background */
+        }
+
+        .curtain {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            background: #800020; /* Changed to burgundy color for a more elegant look */
+            transition: all 3s ease-out;
+            clip-path: polygon(
+                0 0,
+                100% 0,
+                100% 100%,
+                85% 95%,
+                70% 98%,
+                55% 96%,
+                40% 99%,
+                25% 96%,
+                10% 98%,
+                0 100%
+            );
+        }
+
+        .curtain.left {
+            left: 0;
+            transform: translateX(0);
+        }
+
+        .curtain.right {
+            right: 0;
+            transform: translateX(0);
+        }
+
+        .curtain.left.active {
+            transform: translateX(-100%);
+        }
+
+        .curtain.right.active {
+            transform: translateX(100%);
+        }
+
+        .start-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: clamp(10px, 2vw, 15px) clamp(20px, 4vw, 30px);
+            font-size: clamp(18px, 4vw, 24px);
+            background: transparent;
+            color: #64ffda;
+            border: 3px solid #64ffda;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover {
+            background: #64ffda;
+            color: #0a192f;
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.5);
+        }
+
+        .start-button.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .club-name-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1;
+            opacity: 0;
+            width: 90vw;
+            max-width: 1200px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .club-logo {
+            width: clamp(150px, 30vw, 250px);
+            height: auto;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 15px rgba(100, 255, 218, 0.5));
+        }
+
+        .club-name {
+            font-size: clamp(40px, 8vw, 82px);
+            font-family: 'Orbitron', sans-serif; /* More tech-looking font */
+            color: #64ffda; /* Bright teal */
+            text-shadow: 0 0 15px rgba(100, 255, 218, 0.5),
+                        0 0 30px rgba(100, 255, 218, 0.3);
+            margin: 20px 0;
+            background: linear-gradient(45deg, #64ffda, #ffffff, #64ffda);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .club-motto {
+            font-size: clamp(16px, 3vw, 28px);
+            font-family: 'Rajdhani', sans-serif;
+            color: #8892b0; /* Soft blue-grey */
+            text-shadow: 0 0 10px rgba(136, 146, 176, 0.3);
+            margin-top: 20px;
+            letter-spacing: 4px;
+            font-weight: 500;
+        }
+
+        .sparkles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+        }
+
+        .sparkles.active {
+            opacity: 1;
+        }
+
+        @keyframes revealText {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .club-name-container.active {
+            animation: revealText 2s forwards;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .club-logo {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Add sparkle animation */
+        .sparkle {
+            position: absolute;
+            background: radial-gradient(circle, #64ffda 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle 2s infinite;
+        }
+
+        @keyframes sparkle {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1) rotate(180deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Enhanced rocket styles */
+        .rocket {
+            position: absolute;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 80px;
+            opacity: 0;
+            z-index: 2;
+        }
+
+        .rocket-body {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .rocket-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 60px;
+            background: #64ffda;
+            border-radius: 50% 50% 0 0;
+        }
+
+        .rocket-fins {
+            position: absolute;
+            bottom: 15px;
+            width: 20px;
+            height: 30px;
+            background: #64ffda;
+        }
+
+        .rocket-fins.left {
+            left: 0;
+            transform: skew(30deg, 0);
+        }
+
+        .rocket-fins.right {
+            right: 0;
+            transform: skew(-30deg, 0);
+        }
+
+        .rocket-fire {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 30px;
+            background: linear-gradient(to bottom, #ff4d4d, #ff9933);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            animation: flicker 0.1s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .rocket.active {
+            animation: rocketLaunch 3s forwards;
+        }
+
+        @keyframes rocketLaunch {
+            0% {
+                opacity: 1;
+                bottom: -100px;
+                transform: translateX(-50%) rotate(0deg);
+            }
+            20% {
+                transform: translateX(-50%) rotate(-5deg);
+            }
+            40% {
+                transform: translateX(-50%) rotate(5deg);
+            }
+            60% {
+                transform: translateX(-50%) rotate(-3deg);
+            }
+            80% {
+                transform: translateX(-50%) rotate(3deg);
+            }
+            100% {
+                opacity: 0;
+                bottom: 120%;
+                transform: translateX(-50%) rotate(0deg);
+            }
+        }
+
+        /* Add particle effects */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: #64ffda;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFall 1.5s linear infinite;
+        }
+
+        @keyframes particleFall {
+            0% {
+                transform: translateY(-100%) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Add these new styles */
+        .music-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(10, 25, 48, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #64ffda;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .music-controls button {
+            background: transparent;
+            color: #64ffda;
+            border: 1px solid #64ffda;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .music-controls button:hover {
+            background: #64ffda;
+            color: #0a1930;
+        }
+
+        .music-controls select {
+            background: transparent;
+            color: #64ffda;
+            border: 1px solid #64ffda;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .music-controls select option {
+            background: #0a1930;
+            color: #64ffda;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #64ffda;
+        }
+
+        .volume-control input[type="range"] {
+            accent-color: #64ffda;
+        }
+
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(60px, 10vw, 120px);
+            color: #64ffda;
+            font-family: 'Orbitron', sans-serif;
+            z-index: 100;
+            opacity: 0;
+            text-shadow: 
+                0 0 4px #64ffda,
+                0 0 8px #64ffda,
+                0 0 12px #64ffda;
+            text-align: center;
+            width: 90vw;
+            max-width: 1200px;
+        }
+
+        .tech-glow {
+            color: #64ffda;
+            text-shadow: 
+                0 0 4px #64ffda,
+                0 0 8px #64ffda,
+                0 0 12px #64ffda;
+            font-weight: 700;
+        }
+
+        .countdown.active {
+            animation: pulseCount 2s ease-in-out;
+        }
+
+        @keyframes pulseCount {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+        }
+
+        .small-text {
+            font-size: clamp(24px, 5vw, 48px);
+            letter-spacing: 2px;
+            text-shadow: 
+                0 0 2px #64ffda,
+                0 0 4px #64ffda,
+                0 0 8px #64ffda;
+        }
+
+        /* Add media queries for better mobile experience */
+        @media screen and (max-width: 768px) {
+            .countdown {
+                text-shadow: 
+                    0 0 2px #64ffda,
+                    0 0 4px #64ffda,
+                    0 0 8px #64ffda;
+            }
+
+            .typing-text {
+                padding: 0 5px;
+            }
+
+            .typing-text::after {
+                right: -5px;
+            }
+
+            .countdown::before {
+                top: -5px;
+                left: -5px;
+                right: -5px;
+                bottom: -5px;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .countdown {
+                white-space: normal;
+            }
+
+            .music-controls {
+                bottom: 10px;
+                right: 10px;
+                padding: 10px;
+            }
+
+            .rocket {
+                width: 40px;
+                height: 60px;
+            }
+        }
+
+        /* Add smooth transitions for responsive changes */
+        .countdown, .club-name, .club-motto, .club-logo, .start-button {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgMusic" loop>
+        <source src="./car-music-hip-hop-beat-street-racing-background-intro-theme-290635_WkyJBdj2.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="curtain-container">
+        <button class="start-button">Click to Start</button>
+        <div class="countdown"></div>
+        <div class="curtain left"></div>
+        <div class="curtain right"></div>
+        <div class="sparkles"></div>
+        <div class="club-name-container">
+            <img src="./logo-transparent-png.png" alt="Club Logo" class="club-logo">
+            <div class="club-name">AAVISHKAAR</div>
+            <div class="club-motto">Innovate • Create • Inspire</div>
+        </div>
+        <div class="particles"></div>
+        <div class="rocket">
+            <div class="rocket-body">
+                <div class="rocket-fins left"></div>
+                <div class="rocket-fins right"></div>
+                <div class="rocket-fire"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add this in the head section
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500&display=swap';
+        document.head.appendChild(link);
+
+        // Update the click event listener
+        document.querySelector('.start-button').addEventListener('click', function() {
+            this.classList.add('hidden');
+            const countdown = document.querySelector('.countdown');
+            const messages = [
+                { text: "Welcome to", class: "small-text" },
+                { 
+                    text: "TECH FEST", 
+                    class: "tech-glow",
+                    animate: true,
+                    delay: 150
+                },
+                { text: "Are you ready?", class: "small-text" },
+                { text: "Let the innovation begin!", class: "small-text" },
+                { text: "3", class: "tech-glow" },
+                { text: "2", class: "tech-glow" },
+                { text: "1", class: "tech-glow" },
+                { text: "Revealing...", class: "small-text" }
+            ];
+            let index = 0;
+
+            // Start background music immediately
+            const bgMusic = document.getElementById('bgMusic');
+            bgMusic.volume = 0.3;
+            bgMusic.play()
+                .catch(error => {
+                    console.log("Audio autoplay was prevented by the browser");
+                });
+
+            const countdownInterval = setInterval(() => {
+                countdown.textContent = messages[index].text;
+                countdown.className = 'countdown ' + messages[index].class;
+                countdown.classList.remove('active');
+                void countdown.offsetWidth; // Trigger reflow
+                countdown.classList.add('active');
+                
+                index++;
+                
+                if (index >= messages.length) {
+                    clearInterval(countdownInterval);
+                    setTimeout(() => {
+                        countdown.style.display = 'none';
+                        startReveal();
+                    }, 2000); // Increased from 1000 to 2000
+                }
+            }, 2500); // Increased from 1500 to 2500
+        });
+
+        function startReveal() {
+            // Play background music
+            const bgMusic = document.getElementById('bgMusic');
+            bgMusic.volume = 0.3;
+            bgMusic.play()
+                .catch(error => {
+                    console.log("Audio autoplay was prevented by the browser");
+                });
+            
+            document.querySelector('.curtain.left').classList.add('active');
+            document.querySelector('.curtain.right').classList.add('active');
+            
+            // Create sparkles
+            const sparkles = document.querySelector('.sparkles');
+            for(let i = 0; i < 50; i++) {
+                createSparkle(sparkles);
+            }
+            
+            setTimeout(() => {
+                sparkles.classList.add('active');
+                document.querySelector('.club-name-container').classList.add('active');
+                // Add rocket animation
+                setTimeout(() => {
+                    const rocket = document.querySelector('.rocket');
+                    rocket.classList.add('active');
+                    createParticles();
+                }, 2500);
+            }, 2000);
+        }
+
+        function createSparkle(container) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.width = Math.random() * 10 + 'px';
+            sparkle.style.height = sparkle.style.width;
+            sparkle.style.left = Math.random() * 100 + '%';
+            sparkle.style.top = Math.random() * 100 + '%';
+            sparkle.style.animationDelay = Math.random() * 2 + 's';
+            container.appendChild(sparkle);
+        }
+
+        // Add particle creation function
+        function createParticles() {
+            const container = document.querySelector('.particles');
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.width = Math.random() * 8 + 'px';
+                    particle.style.height = particle.style.width;
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDuration = (Math.random() * 1 + 1) + 's';
+                    container.appendChild(particle);
+                    
+                    // Remove particle after animation
+                    particle.addEventListener('animationend', () => {
+                        particle.remove();
+                    });
+                }, i * 100);
+            }
+        }
+
+        // Add resize event listener for dynamic adjustments
+        window.addEventListener('resize', () => {
+            const countdown = document.querySelector('.countdown');
+            if (countdown) {
+                // Recenter the countdown text
+                countdown.style.transform = 'translate(-50%, -50%)';
+            }
+        });
+    </script>
+</body>
+</html>
